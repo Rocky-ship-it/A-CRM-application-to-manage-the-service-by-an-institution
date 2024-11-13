@@ -1,0 +1,54 @@
+import requests
+
+# Replace with your Salesforce credentials
+sf_login_url = 'https://login.salesforce.com/services/oauth2/token'
+client_id = 'your_consumer_key'
+client_secret = 'your_consumer_secret'
+username = 'your_salesforce_username'
+password = 'your_salesforce_password'
+security_token = 'your_salesforce_security_token'
+
+# Prepare the payload for OAuth2.0 token request
+data = {
+    'grant_type': 'password',
+    'client_id': client_id,
+    'client_secret': client_secret,
+    'username': username,
+    'password': f'{password}{security_token}'  # Password + Security Token
+}
+
+# Make the POST request to Salesforce token endpoint
+response = requests.post(sf_login_url, data=data)
+
+# Get the access token from the response
+if response.status_code == 200:
+    auth_data = response.json()
+    access_token = auth_data['access_token']
+    instance_url = auth_data['instance_url']
+    print('Access token:', access_token)
+else:
+    print(f'Error: {response.status_code} - {response.text}')
+from simple_salesforce import Salesforce
+
+# Authenticate with Salesforce using the access token and instance URL
+sf = Salesforce(instance_url=instance_url, session_id=access_token)
+
+# Fetching services offered by the institution
+# Assume 'Service__c' is a custom object representing services in Salesforce
+services = sf.query("SELECT Id, Name, Description__c, Price__c FROM Service__c")
+
+# Print the services
+for service in services['records']:
+    print(f"Service Name: {service['Name']}")
+    print(f"Description: {service['Description__c']}")
+    print(f"Price: {service['Price__c']}")
+    print('---')
+
+# Create a new service
+new_service = sf.Service__c.create({
+    'Name': 'New Service',
+    'Description__c': 'This is a new service offered by the institution.',
+    'Price__c': 150.00
+})
+
+print(f"New service created with ID: {new_service['id']}")
