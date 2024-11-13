@@ -1,0 +1,20 @@
+public class ServiceController {
+    public String serviceName { get; set; }
+    public String serviceDescription { get; set; }
+    public Decimal servicePrice { get; set; }
+
+    public List<Service__c> getServices() {
+        return [SELECT Id, Name, Description__c, Price__c FROM Service__c];
+    }
+
+    public PageReference createService() {
+        Service__c newService = new Service__c(
+            Name = serviceName,
+            Description__c = serviceDescription,
+            Price__c = servicePrice
+        );
+        insert newService;
+
+        return null; // Refresh the page to show the new service
+    }
+}
